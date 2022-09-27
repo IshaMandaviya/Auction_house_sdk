@@ -1,0 +1,18 @@
+import { PublicKey } from "@solana/web3.js";
+
+export const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+
+export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112');
+ 
+export const AUCTION_HOUSE_PROGRAM_ID = new PublicKey('hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk');
+
+export const AUCTIONEER = new PublicKey("neer8g6yJq2mQM6KbnViEDAD4gr3gRZyMMf4F2p3MEh")
+
+export const SELLERKEY= [156,206,35,113,164,232,61,231,183,200,214,58,208,15,41,179,91,158,74,7,76,80,154,118,41,17,88,225,211,79,54,91,128,130,148,190,140,225,117,83,127,71,104,197,105,86,58,73,40,134,189,78,146,59,239,169,42,18,38,112,178,172,189,173]
+
+export const TOKEN_PROGRAM=new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+
+export const SYSTEM_PROGRAM=new PublicKey("11111111111111111111111111111111");
+
+
+export const RENT=new PublicKey("SysvarRent111111111111111111111111111111111");
