@@ -178,18 +178,22 @@ const accounts = {
     buyerTradeState: buyerTradeState[0],
     sellerTradeState: sellerTradeState,
     freeTradeState: freeTradeState,
-    tokenProgram: TOKEN_PROGRAM,
-    systemProgram: SYSTEM_PROGRAM,
-    ataProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
     programAsSigner: signer,
-    rent: RENT
+    anchorRemainingAccounts: [{pubkey: new PublicKey("J2wYmkdUgVZXVFfs7vrZuCpdrJy5Y4c4L4tcR4tjoLGT"),
+      isWritable: true,
+      isSigner: false,},
+      {pubkey: new PublicKey("4L3oWp4ANModX1TspSSetKsB8HUu2TiBpuqj5FGJonAh"),
+      isWritable: true,
+      isSigner: false,}]
+    
+ 
     // anchorRemainingAccounts?: web3.AccountMeta[];
   
    
 
 };
 
-console.log("wallet",accounts);
+// console.log("wallet",accounts);
 // console.log("tokenAccount",wallet.publicKe.toBase58());
 
 
