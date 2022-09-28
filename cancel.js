@@ -1,4 +1,4 @@
-import { createBuyInstruction, } from "@metaplex-foundation/mpl-auction-house";
+import { createCancelInstruction } from "@metaplex-foundation/mpl-auction-house";
 import {
   SELLERKEY,
   WRAPPED_SOL_MINT,
@@ -13,6 +13,7 @@ import pkg from "@project-serum/anchor";
 const { BN } = pkg;
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import * as anchor from "@project-serum/anchor";
+import { token } from "@metaplex-foundation/js";
 const { Connection, clusterApiUrl, Keypair, PublicKey, web3, Transaction } =
   pack;
 
@@ -29,7 +30,7 @@ const auctionHouse = new PublicKey(
   "7jffDyhmwo12AwcnJPLAPC9qQCp2mMH1HdcrsWrXtyrb"
 );
 const treasuryMint = WRAPPED_SOL_MINT;
-const mint = new PublicKey("4zoZ4zuvcnj7RuLUzEPvLzsMDe864coqnn25oZs6JGfe");
+const mint = new PublicKey("BeW8fqPyFYQvy3SxjFW3Tpbf79NvinBFHHAxmNbfeDpt");
 const twdAta = await getAssociatedTokenAddress(treasuryMint, wallet.publicKey);
 
 
@@ -104,7 +105,15 @@ async function getAuctionHouseTradeState(
     AUCTION_HOUSE_PROGRAM_ID
   );
 }
-// const buyerTradeState = await getAuctionHouseTradeState()
+const [tradeState, tradeBump] = await getAuctionHouseTradeState(
+  auctionHouse,
+  wallet.publicKey,
+  tokenAccountAddress,
+  WRAPPED_SOL_MINT,
+  mint,
+  1,
+  1,
+);
 
 const buyerTradeState = await PublicKey.findProgramAddress(
   [
@@ -126,8 +135,8 @@ const [freeTradeState, freeTradeBump] = await getAuctionHouseTradeState(
   WRAPPED_SOL_MINT,
   mint,
   1,
-  "0"
-);
+  1,
+  );
 const feePayer = await PublicKey.findProgramAddress(
   [
     Buffer.from("auction_house"),
@@ -149,31 +158,42 @@ const escrowPaymentAccount = await PublicKey.findProgramAddress(
   ],
   AUCTION_HOUSE_PROGRAM_ID
 );
-
+// export declare type CancelInstructionAccounts = {
+//   wallet: web3.PublicKey;
+//   tokenAccount: web3.PublicKey;
+//   tokenMint: web3.PublicKey;
+//   authority: web3.PublicKey;
+//   auctionHouse: web3.PublicKey;
+//   auctionHouseFeeAccount: web3.PublicKey;
+//   tradeState: web3.PublicKey;
+//   tokenProgram?: web3.PublicKey;
+//   anchorRemainingAccounts?: web3.AccountMeta[];
+// };
 
 const accounts = {
-  wallet: buyer.publicKey,
-  paymentAccount: buyer.publicKey,
-  transferAuthority: wallet.publicKey,
-  treasuryMint: WRAPPED_SOL_MINT,
+  wallet: wallet.publicKey,
   tokenAccount: tokenAccountAddress,
-  metadata: metadata[0],
-  escrowPaymentAccount: escrowPaymentAccount[0],
+  tokenMint: mint,
   authority: wallet.publicKey,
-
   auctionHouse: auctionHouse,
   auctionHouseFeeAccount: new PublicKey(
     "9EW5yHSWkomLCSjFz1PGSF7ePnBVYLk4nPTiDXkT6Fa1"
   ),
-  buyerTradeState: buyerTradeState[0],
+  tradeState: tradeState,
+  tokenProgram: TOKEN_PROGRAM,
+  programAsSigner: signer,
+  // metadata: metadata[0],
+  // escrowPaymentAccount: escrowPaymentAccount[0],
+
+
+  // buyerTradeState: buyerTradeState[0],
 };
 
 // console.log("tokenAccount",wallet.publicKe.toBase58());
 
 const args = {
-  tradeStateBump: buyerTradeState[1],
-  escrowPaymentBump: escrowPaymentAccount[1],
-
+  // tradeStateBump: buyerTradeState[1],
+  // escrowPaymentBump: escrowPaymentAccount[1],
   buyerPrice: 1,
   tokenSize: 1,
 };
@@ -186,14 +206,14 @@ const args = {
 //   tokenSize: new BN(1),
 // };
 
-const AH = createBuyInstruction(accounts, args);
+const AH = createCancelInstruction(accounts, args);
 
 let ix = new Transaction();
 ix.add(AH);
 ix.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-ix.feePayer =  buyer.publicKey;
+ix.feePayer =  wallet.publicKey;
 
-ix.sign(buyer);
+ix.sign(wallet);
 
 const sign = await connection.sendRawTransaction(ix.serialize());
 

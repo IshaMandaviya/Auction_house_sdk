@@ -15,8 +15,11 @@ import { getAssociatedTokenAddress,ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/s
 import * as anchor from '@project-serum/anchor';
 const { Connection, clusterApiUrl, Keypair, PublicKey, web3, Transaction } =
   pack;
+  import { Metaplex } from "@metaplex-foundation/js";
+  const connection = new Connection(clusterApiUrl("devnet"));
 
-const connection = new Connection(clusterApiUrl("devnet"));
+  const metaplex = new Metaplex(connection);
+
 
 const sellerFeeBasisPoints = 1000;
 
@@ -29,7 +32,7 @@ const auctionHouse = new PublicKey(
   "7jffDyhmwo12AwcnJPLAPC9qQCp2mMH1HdcrsWrXtyrb"
 );
 const treasuryMint = WRAPPED_SOL_MINT;
-const mint = new PublicKey("BeW8fqPyFYQvy3SxjFW3Tpbf79NvinBFHHAxmNbfeDpt");
+const mint = new PublicKey("4zoZ4zuvcnj7RuLUzEPvLzsMDe864coqnn25oZs6JGfe");
 const twdAta = await getAssociatedTokenAddress(treasuryMint, wallet.publicKey);
 
 const buyerKey = [
@@ -159,6 +162,20 @@ const buyerAssociatedAccount = await getAssociatedTokenAddress(
     ],
     AUCTION_HOUSE_PROGRAM_ID
   );
+  
+  let remainingAccounts = []
+  const nft = await metaplex.nfts().findByMint({ mintAddress : mint }).run();
+
+  for (let i=0;i<nft.creators.length;i++){
+    let creator ={pubkey: nft.creators[i].address ,
+    isWritable: true,
+    isSigner: false}
+    remainingAccounts.push(creator);
+  }
+
+
+
+
 const accounts = {
   
     buyer: buyer.publicKey,
@@ -179,12 +196,7 @@ const accounts = {
     sellerTradeState: sellerTradeState,
     freeTradeState: freeTradeState,
     programAsSigner: signer,
-    anchorRemainingAccounts: [{pubkey: new PublicKey("J2wYmkdUgVZXVFfs7vrZuCpdrJy5Y4c4L4tcR4tjoLGT"),
-      isWritable: true,
-      isSigner: false,},
-      {pubkey: new PublicKey("4L3oWp4ANModX1TspSSetKsB8HUu2TiBpuqj5FGJonAh"),
-      isWritable: true,
-      isSigner: false,}]
+    anchorRemainingAccounts: remainingAccounts
     
  
     // anchorRemainingAccounts?: web3.AccountMeta[];
