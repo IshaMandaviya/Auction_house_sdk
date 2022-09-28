@@ -29,7 +29,7 @@ const auctionHouse = new PublicKey(
   "7jffDyhmwo12AwcnJPLAPC9qQCp2mMH1HdcrsWrXtyrb"
 );
 const treasuryMint = WRAPPED_SOL_MINT;
-const mint = new PublicKey("5wuskiLZy16mBLsaTN1ndtRFFdBRpythsAEqwFR7me99");
+const mint = new PublicKey("BeW8fqPyFYQvy3SxjFW3Tpbf79NvinBFHHAxmNbfeDpt");
 const twdAta = await getAssociatedTokenAddress(treasuryMint, wallet.publicKey);
 const tokenAccountAddress = await getAssociatedTokenAddress(
   mint,
