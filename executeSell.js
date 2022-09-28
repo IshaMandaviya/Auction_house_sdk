@@ -11,7 +11,7 @@ import {
 import pack from "@solana/web3.js";
 import pkg from "@project-serum/anchor";
 const { BN } = pkg;
-import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { getAssociatedTokenAddress,ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import * as anchor from '@project-serum/anchor';
 const { Connection, clusterApiUrl, Keypair, PublicKey, web3, Transaction } =
   pack;
@@ -31,6 +31,15 @@ const auctionHouse = new PublicKey(
 const treasuryMint = WRAPPED_SOL_MINT;
 const mint = new PublicKey("BeW8fqPyFYQvy3SxjFW3Tpbf79NvinBFHHAxmNbfeDpt");
 const twdAta = await getAssociatedTokenAddress(treasuryMint, wallet.publicKey);
+
+const buyerKey = [
+    139, 246, 0, 124, 30, 207, 79, 213, 87, 142, 69, 31, 0, 83, 76, 153, 184, 211,
+    240, 57, 40, 4, 38, 225, 220, 94, 47, 40, 16, 217, 82, 167, 87, 90, 70, 81,
+    27, 62, 106, 242, 54, 191, 179, 11, 95, 164, 80, 84, 30, 12, 65, 95, 254, 165,
+    155, 78, 181, 186, 13, 112, 240, 127, 196, 31,
+  ];
+  const buyer = Keypair.fromSecretKey(Uint8Array.from(buyerKey));
+
 const tokenAccountAddress = await getAssociatedTokenAddress(
   mint,
   wallet.publicKey
@@ -95,15 +104,15 @@ async function getAuctionHouseTradeState(
     ); 
   }
 
-const [sellerTradeState, tradeBump] = await getAuctionHouseTradeState(
-  auctionHouse,
-  wallet.publicKey,
-  tokenAccountAddress,
-  WRAPPED_SOL_MINT,
-  mint,
-  1,
-  1,
-);
+  const [sellerTradeState, tradeBump] = await getAuctionHouseTradeState(
+    auctionHouse,
+    wallet.publicKey,
+    tokenAccountAddress,
+    WRAPPED_SOL_MINT,
+    mint,
+    1,
+    1,
+  );
 const [freeTradeState, freeTradeBump] = await getAuctionHouseTradeState(
   auctionHouse,
   wallet.publicKey,
@@ -113,6 +122,19 @@ const [freeTradeState, freeTradeBump] = await getAuctionHouseTradeState(
   1,
   "0"
 );
+const buyerTradeState = await PublicKey.findProgramAddress(
+    [
+      Buffer.from("auction_house"),
+      buyer.publicKey.toBuffer(),
+      auctionHouse.toBuffer(),
+      tokenAccountAddress.toBuffer(),
+      WRAPPED_SOL_MINT.toBuffer(),
+      mint.toBuffer(),
+      new BN("1").toArrayLike(Buffer, "le", 8),
+      new BN("1").toArrayLike(Buffer, "le", 8),
+    ],
+    AUCTION_HOUSE_PROGRAM_ID
+  );
 const feePayer = await PublicKey.findProgramAddress(
     [
     Buffer.from('auction_house'),
@@ -125,28 +147,20 @@ const [signer, signerBump] = await PublicKey.findProgramAddress(
   [Buffer.from("auction_house"), Buffer.from("signer")],
   AUCTION_HOUSE_PROGRAM_ID
 );
-
+const buyerAssociatedAccount = await getAssociatedTokenAddress(
+    mint,
+    buyer.publicKey
+  )
+  const escrowPaymentAccount = await PublicKey.findProgramAddress(
+    [
+      Buffer.from("auction_house"),
+      auctionHouse.toBuffer(),
+      buyer.publicKey.toBuffer(),
+    ],
+    AUCTION_HOUSE_PROGRAM_ID
+  );
 const accounts = {
-  wallet: wallet.publicKey,
-  tokenAccount: tokenAccountAddress,
-  metadata: metadata[0],
-  authority: wallet.publicKey,
- 
-  auctionHouse: auctionHouse,
-  auctionHouseFeeAccount: new PublicKey(
-    "9EW5yHSWkomLCSjFz1PGSF7ePnBVYLk4nPTiDXkT6Fa1"
-  ),
-  sellerTradeState: sellerTradeState,
-  freeSellerTradeState: freeTradeState,
-  // tokenProgram: TOKEN_PROGRAM,
-  // systemProgram: SYSTEM_PROGRAM,
-  programAsSigner: signer,
-  // rent?: RENT,
-
-};
-const executeSaleAccounts =  {
-    // auctionHouseProgram: AUCTION_HOUSE_PROGRAM_ID,
-    // listingConfig: listingConfig[0],
+  
     buyer: buyer.publicKey,
     seller: wallet.publicKey,
     tokenAccount: tokenAccountAddress,
@@ -156,29 +170,39 @@ const executeSaleAccounts =  {
     escrowPaymentAccount:escrowPaymentAccount[0] ,
     sellerPaymentReceiptAccount: wallet.publicKey,
     buyerReceiptTokenAccount: buyerAssociatedAccount,
-    authority: new PublicKey("4L3oWp4ANModX1TspSSetKsB8HUu2TiBpuqj5FGJonAh"),
-    auctionHouse: aH,
+    authority:new PublicKey("9eefy5AYPPE1MdftbK4XKBeK1Shwyt2oCauUvL8kKYKW"),
+    
+    auctionHouse: auctionHouse,
     auctionHouseFeeAccount: feePayer[0],
-    auctionHouseTreasury: new PublicKey("CB6WiXVsqDLQtZ6ZEdUVkGc7yFVB5nHiR7tEMiYePeDd"),
+    auctionHouseTreasury: new PublicKey("HQjwCQ8WLPgsQ5UjshBv5uS9gMH8CidJrYvGiPr1WyZm"),
     buyerTradeState: buyerTradeState[0],
     sellerTradeState: sellerTradeState,
     freeTradeState: freeTradeState,
-    auctioneerAuthority:auctioneerAuthority[0],
-    ahAuctioneerPda: pda[0],
-    programAsSigner: signer
-}
-console.log("wallet",auctionHouse.toBase58());
+    tokenProgram: TOKEN_PROGRAM,
+    systemProgram: SYSTEM_PROGRAM,
+    ataProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    programAsSigner: signer,
+    rent: RENT
+    // anchorRemainingAccounts?: web3.AccountMeta[];
+  
+   
+
+};
+
+console.log("wallet",accounts);
 // console.log("tokenAccount",wallet.publicKe.toBase58());
 
 
 
 const args = {
-  tradeStateBump: tradeBump,
+    escrowPaymentBump:escrowPaymentAccount[1],
+
   freeTradeStateBump: freeTradeBump,
   programAsSignerBump: signerBump,
   buyerPrice: new BN(1),
   tokenSize: new BN(1),
 };
+// console.log("args",args);
 
 const AH = createExecuteSaleInstruction(accounts, args);
 
